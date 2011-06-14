@@ -1,6 +1,30 @@
 = each_sql
 
-Description goes here.
+Enumerate each SQL statement in the given SQL script.
+
+== Installation
+ gem install 'each_sql'
+
+== Example
+=== Basic
+  require 'each_sql'
+ 
+  EachSQL(sql_script).each do |sql|
+    puts sql
+  end
+ 
+  sqls = EachSQL(sql_script).to_a
+
+=== For scripts containing vendor-specific syntax
+  # For MySQL script
+  EachSQL(mysql_script, :mysql).each do |sql|
+    # ...
+  end
+
+  # For Oracle PL/SQL scripts
+  EachSQL(plsql_script, :oracle).each do |sql|
+    # ...
+  end
 
 == Contributing to each_sql
  
