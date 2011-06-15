@@ -1,4 +1,4 @@
-$LOAD_PATH << 'test'
+$LOAD_PATH << File.dirname(__FILE__)
 require 'helper'
 
 class TestEachSql < Test::Unit::TestCase
@@ -116,21 +116,21 @@ select * from dual;"
 		assert_equal EachSQL(script).to_a, EachSQL(script).map { |e| e }
 	end
 	
-	def _test_oracle
+	def test_oracle
 		EachSQL(@oracle, :oracle).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
 		end
 	end
 
-	def _test_mysql
+	def test_mysql
 		EachSQL(@mysql, :mysql).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
 		end
 	end
 
-	def t_est_postgres
+	def _test_postgres
 		EachSQL(File.read(File.dirname(__FILE__) + '/postgres.sql'), :postgres).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40

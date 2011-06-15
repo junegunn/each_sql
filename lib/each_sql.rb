@@ -82,24 +82,7 @@ class EachSQL
 			:strip_delimiter => lambda { |obj, stmt| obj 
 				stmt.chomp( stmt =~ /;\s*\// ? '/' : ';' )
 			}
-		},
-
-		:postgres => {
-			:delimiter => /;+/,
-			:blocks => {
-				/'/          => /'/,
-				/\/\*/       => /\*\//,
-				/--+/        => $/,
-			},
-			:nesting_blocks => {
-				/\bbegin\b/i => /\bend\b/i
-			},
-			:callbacks => {},
-			:ignore    => [],
-			:replace   => {},
-			:strip_delimiter => lambda { |obj, stmt| stmt.chomp ';' }
-		},
-
+		}
 	}
 	Defaults[:plsql] = Defaults[:oracle] # alias
 

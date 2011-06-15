@@ -6,6 +6,7 @@ class EachSQL
 	include Enumerable
 
 	def initialize input, options
+		raise NotImplementedError.new if options.nil?
 		# immutables
 		@org_input = input
 		@options = options
