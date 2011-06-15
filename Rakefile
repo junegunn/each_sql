@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "each_sql"
   gem.homepage = "http://github.com/junegunn/each_sql"
   gem.license = "MIT"
-  gem.summary = %Q{Enumerate through each SQL statement in multi-line SQL script.}
-  gem.description = %Q{Enumerate through each SQL statement in multi-line SQL script.}
+  gem.summary = %Q{Enumerate through each SQL statement in SQL scripts.}
+  gem.description = %Q{Enumerate through each SQL statement in SQL scripts.}
   gem.email = "junegunn.c@gmail.com"
   gem.authors = ["Junegunn Choi"]
   # dependencies defined in Gemfile
