@@ -12,7 +12,7 @@ from
 "select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c",
 
 "select
-	*
+	/*+ help */ *
 from
 	d",
 "select * from /* block comment ; */ e",
@@ -20,8 +20,37 @@ from
 from -- line comment ; /* ;; */
 f",
 "-------------- begin-end block;
-
-create or replace something as
+begin
+	-- begin-end block;
+	-- line comment
+	-- line comment
+	-- line comment
+	begin
+		null;
+		begin
+			null;
+		end;
+	end;
+	-- end
+	/* end */
+end",
+"-------------- begin-end block;
+declare
+	/* end; */
+	/* begin */
+	null;
+	null;
+	null;
+begin
+	/* end */
+end",
+"-------------- begin-end block;
+declare
+	/* end; */
+	/* begin */
+	null;
+	null;
+	null;
 begin
 	-- begin-end block;
 	-- line comment
@@ -38,11 +67,14 @@ begin
 end",
 "select * from dual",
 "select * from dual"]
+
 	@oracle = "
-create or replace procedure tmmp(p1 number, p2 number) as
-    str varchar2(4000);
+select * from dual;
+Create or replace Procedure tmmp(p1 number, p2 number) as
+    str number(8, 2) := 1 / 4;
 begin
 	begin
+		1 / 4;
 		null;
 	end;
 exception
@@ -52,6 +84,26 @@ end;
 /
 select * from dual;"
 
+	@mysql = "
+delimiter //
+drop procedure if exists proc //
+create procedure proc(p1 int, p2 int)
+begin
+    null;
+
+end //
+delimiter ;
+
+delimiter $$
+drop procedure if exists proc2 $$
+create procedure proc(p1 int, p2 int)
+begin
+    null;
+
+end $$
+delimiter ;
+
+select * from dual;"
 	end
 
 	def test_sql
@@ -59,19 +111,29 @@ select * from dual;"
 		EachSQL(script).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
-			#assert_equal @sql[idx], sql
+			assert_equal @sql[idx], sql
 		end
-		#assert_equal EachSQL(@sql).to_a, EachSQL(@sql).map { |e| e }
+		assert_equal EachSQL(script).to_a, EachSQL(script).map { |e| e }
 	end
 	
-	def t_est_oracle
+	def _test_oracle
 		EachSQL(@oracle, :oracle).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
 		end
 	end
 
-	def test_mysql
+	def _test_mysql
+		EachSQL(@mysql, :mysql).each_with_index do |sql,idx|
+			puts sql
+			puts '-' * 40
+		end
 	end
 
+	def t_est_postgres
+		EachSQL(File.read(File.dirname(__FILE__) + '/postgres.sql'), :postgres).each_with_index do |sql,idx|
+			puts sql
+			puts '-' * 40
+		end
+	end
 end
