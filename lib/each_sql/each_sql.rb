@@ -8,7 +8,7 @@ class EachSQL
 	def initialize input, options
 		raise NotImplementedError.new if options.nil?
 		# immutables
-		@org_input = input
+		@org_input = input.sub(/\A#{[65279].pack('U*')}/, '') # BOM
 		@options = options
 		@blocks = @options[:blocks]
 		@nblocks = @options[:nesting_blocks]
@@ -44,7 +44,8 @@ class EachSQL
 				end
 
 				# Ignore
-				if (@options[:ignore] || []).all? { |ipat| statement !~ ipat }
+				if statement.length > 0 && 
+						(@options[:ignore] || []).all? { |ipat| statement !~ ipat }
 					yield statement
 					@prev_statement = statement
 				end
@@ -61,13 +62,13 @@ private
 		# Look for the closest block
 		while true
 			block_start, opener_length, opener, closer = @blocks.map { |opener, closer|
-				md = output.match(opener, idx)
-				[md && md.begin(0), md && md[0].length, opener, closer]
+				md = match output, opener, idx
+				[md && md[:begin], md && md[:length], opener, closer]
 			}.reject { |e| e.first.nil? }.min_by(&:first)
 			break if block_start.nil?
 
-			md = output.match closer, block_start + opener_length
-			idx = block_end = md ? md.end(0) : (output.length-1)
+			md = match output, closer, block_start + opener_length
+			idx = block_end = md ? md[:end] : (output.length-1)
 
 			output[block_start...block_end] = ' ' * (block_end - block_start)
 		end
@@ -88,13 +89,13 @@ private
 
 	def process_next_block expect = nil
 		# Look for the closest delimiter
-		md = @input_c.match @delimiter, @cur
-		delim_start = md ? md.begin(0) : @input.length
-		delim_end   = md ? md.end(0) : @input.length
+		md = match @input_c, @delimiter, @cur
+		delim_start = md ? md[:begin] : @input.length
+		delim_end   = md ? md[:end] : @input.length
 
 		# Look for the closest block
 		target_blocks = 
-			if @options[:nesting_context].any? {|pat| @input_c.gsub($/, ' ').match pat }
+			if @options[:nesting_context].any? {|pat| @input_c.match pat }
 				@all_blocks
 			else
 				@blocks
@@ -102,15 +103,15 @@ private
 
 		block_start, body_start, opener, closer = target_blocks.map { |opener, closer|
 			closer = closer[:closer] if closer.is_a? Hash
-			md = @input_c.match(opener, @cur)
-			[md && md.begin(0), md && md.end(0), opener, closer]
+			md = match @input_c, opener, @cur
+			[md && md[:begin], md && md[:end], opener, closer]
 		}.reject { |e| e.first.nil? }.min_by(&:first)
 
 		# If we're nested, look for the parent's closer as well
-		if expect && (md = @input_c.match expect, @cur) &&
-				(block_start.nil? || md.begin(0) < block_start)
+		if expect && (md = match @input_c, expect, @cur) &&
+				(block_start.nil? || md[:begin] < block_start)
 
-			@cur = md.end(0)
+			@cur = md[:end]
 			return :nest_closer
 		end
 	
@@ -142,11 +143,23 @@ private
 		return :continue
 	end
 
+	def match str, pat, idx
+		md = str[idx..-1].match(pat)
+		return nil if md.nil?
+
+		result = {
+			:begin => md && (md.begin(0) + idx),
+			:length => md && md[0].length,
+			:end => md && (md.end(0) + idx)
+		}
+		result
+	end
+
 	def skip_through_block closer
-		md = @input_c.match closer, @cur
+		md = match @input_c, closer, @cur
 		throw_exception(closer) if md.nil?
 
-		@cur = md.end(0)
+		@cur = md[:end]
 	end
 
 	def throw_exception closer

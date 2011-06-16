@@ -31,7 +31,7 @@ class EachSQL
 				/\bbegin\b/i => /;\s*?end\b/i,
 			},
 			:nesting_context => [
-				/\A\s*(begin|declare|create\b[^;]+\b(procedure|function|trigger|package))\b/im
+				/\A\s*(begin|declare|create\b[^;]+?\b(procedure|function|trigger|package))\b/im
 			],
 			:callbacks => {},
 			:ignore    => [],
@@ -53,13 +53,13 @@ class EachSQL
 				/\bbegin\b/i => /\bend\b/i
 			},
 			:nesting_context => [
-				/\A\s*(begin|create\b[^;]+\b(procedure|function|trigger))\b/im
+				/\A\s*(begin|create\b[^;]+?\b(procedure|function|trigger))\b/im
 			],
 			# We need to change delimiter on `delimiter' command
 			:callbacks => {
 				/^\s*delimiter\s+(\S+)/i => lambda { |obj, stmt, md|
 					new_delimiter = Regexp.new(Regexp.escape md[1])
-					obj.delimiter = /#{new_delimiter}+|delimiter\s+\S+/i
+					obj.delimiter = /(#{new_delimiter})+|delimiter\s+\S+/i
 					obj.delimiter_string = md[1]
 				}
 			},
@@ -68,7 +68,7 @@ class EachSQL
 			],
 			:replace => {},
 			:strip_delimiter => lambda { |obj, stmt|
-				stmt.chomp(obj.delimiter_string || ';')
+				stmt.gsub(/(#{Regexp.escape(obj.delimiter_string || ';')})+\Z/, '')
 			}
 		},
 
@@ -88,14 +88,14 @@ class EachSQL
 					# Stops immediately
 					:pop => true
 				},
-				/\bcreate[^;]*\b(procedure|function|trigger|package)\b/im => {
+				/\bcreate[^;]+?\b(procedure|function|trigger|package)\b/im => {
 					:closer => %r{;\s*/}m,
 					# Stops immediately
 					:pop => true
 				}
 			},
 			:nesting_context => [
-				/\A\s*(begin|declare|create\b[^;]+\b(procedure|function|trigger|package))\b/im
+				/\A\s*(begin|declare|create\b[^;]+?\b(procedure|function|trigger|package))\b/im
 			],
 			:callbacks => {
 				/\Abegin\b/ => lambda { |obj, stmt, md|
@@ -106,7 +106,7 @@ class EachSQL
 			:ignore => [],
 			:replace => { %r[\A/] => '' },
 			:strip_delimiter => lambda { |obj, stmt| obj 
-				stmt.chomp( stmt =~ /;\s*\// ? '/' : ';' )
+				stmt.gsub(/(#{stmt =~ /;\s*\// ? '/' : ';'})+\Z/, '')
 			}
 		}
 	}

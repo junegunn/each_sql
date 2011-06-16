@@ -8,8 +8,10 @@ GEM
       rake
     rake (0.8.7)
     rcov (0.9.9)
+    rcov (0.9.9-java)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES

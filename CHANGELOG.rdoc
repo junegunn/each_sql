@@ -1,5 +1,6 @@
-=== 0.2.0 / 2011/06/16
-* Second release. Slightly better, handles more cases.
+=== 0.2.0 / 2011/06/17
+* Second release. Handles more cases.
+* Ruby 1.8 compatible
 
 === 0.1.0 / 2011/06/15
 * Initial release. Turned out to be very flawed :p

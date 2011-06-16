@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 $LOAD_PATH << File.dirname(__FILE__)
 require 'helper'
 
@@ -76,6 +78,11 @@ end",
 	@oracle = [
 'select * from dual',
 'create /* procedure */ sequence a',
+"create package something as
+	procedure log;
+	procedure log;
+	procedure log;
+end something;",
 "Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
     str number(8, 2) := 1 / 4;
 begin
@@ -111,6 +118,13 @@ end;",
 	@oracle_script = "
 select * from dual;
 create /* procedure */ sequence a;
+create package something as
+	procedure log;
+	procedure log;
+	procedure log;
+end something;
+/
+
 Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
     str number(8, 2) := 1 / 4;
 begin
@@ -142,6 +156,14 @@ begin
 end;
 /
 select * from dual;
+;
+;
+;
+
+
+;;;;;;
+;
+
 select begin, end, create, procedure, end, from dual;
 select * from dual;
 "
