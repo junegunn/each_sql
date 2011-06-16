@@ -4,21 +4,17 @@ require 'helper'
 class TestEachSql < Test::Unit::TestCase
 	def setup
 	@sql = [
-"select * from a",
-"select
-	*
-from
-	b",
-"select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c",
-
-"select
-	/*+ help */ *
-from
-	d",
-"select * from /* block comment ; */ e",
-"select * 
-from -- line comment ; /* ;; */
-f",
+"-------------- begin-end block;
+declare
+	/* end; */
+	/* begin */
+	null;
+	null;
+	null;
+begin
+	/* end */
+	null;
+end",
 "-------------- begin-end block;
 begin
 	-- begin-end block;
@@ -34,16 +30,21 @@ begin
 	-- end
 	/* end */
 end",
-"-------------- begin-end block;
-declare
-	/* end; */
-	/* begin */
-	null;
-	null;
-	null;
-begin
-	/* end */
-end",
+"select * from a",
+"select
+	*
+from
+	b",
+"select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c",
+
+"select
+	/*+ help */ *
+from
+	d",
+"select * from /* block comment ; */ e",
+"select * 
+from -- line comment ; /* ;; */
+f",
 "-------------- begin-end block;
 declare
 	/* end; */
@@ -66,13 +67,54 @@ begin
 	/* end */
 end",
 "select * from dual",
-"select * from dual"]
+"select b `begin` from dual",
+'select b "begin" from dual',
+'select 
+	begin , begin.* from begin'
+]
 
-	@oracle = "
-select * from dual;
-Create or replace Procedure tmmp(p1 number, p2 number) as
+	@oracle = [
+'select * from dual',
+'create /* procedure */ sequence a',
+"Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
     str number(8, 2) := 1 / 4;
 begin
+	1 / 2;
+	begin
+		1 / 4;
+		null;
+	end;
+exception
+    when others then
+        raise;
+end;",
+"declare
+	a int;
+begin
+	1 / 2;
+	begin
+		1 / 4;
+		null;
+	end;
+exception
+    when others then
+        raise;
+end;",
+"begin
+	null;
+end;",
+"select * from dual",
+"select begin, end, create, procedure, end, from dual",
+"select * from dual"
+	]
+		
+	@oracle_script = "
+select * from dual;
+create /* procedure */ sequence a;
+Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
+    str number(8, 2) := 1 / 4;
+begin
+	1 / 2;
 	begin
 		1 / 4;
 		null;
@@ -82,15 +124,58 @@ exception
         raise;
 end;
 /
-select * from dual;"
+declare
+	a int;
+begin
+	1 / 2;
+	begin
+		1 / 4;
+		null;
+	end;
+exception
+    when others then
+        raise;
+end;
+/
+begin
+	null;
+end;
+/
+select * from dual;
+select begin, end, create, procedure, end, from dual;
+select * from dual;
+"
 
-	@mysql = "
+	@mysql = [
+"drop procedure if exists proc",
+"create procedure proc(p1 int, p2 int)
+begin
+    null;
+	begin
+		null;
+	end;
+end",
+"drop procedure if exists proc2",
+"create procedure proc(p1 int, p2 int)
+begin
+    null;
+
+end",
+"select * from dual",
+"select b `begin` from dual",
+'select b "begin" from dual',
+'select 
+	begin , begin.* from begin'
+	]
+	@mysql_script = "
 delimiter //
 drop procedure if exists proc //
 create procedure proc(p1 int, p2 int)
 begin
     null;
-
+	begin
+		null;
+	end;
 end //
 delimiter ;
 
@@ -103,7 +188,11 @@ begin
 end $$
 delimiter ;
 
-select * from dual;"
+select * from dual;
+select b `begin` from dual;
+select b \"begin\" from dual;
+select 
+	begin , begin.* from begin"
 	end
 
 	def test_sql
@@ -117,16 +206,18 @@ select * from dual;"
 	end
 	
 	def test_oracle
-		EachSQL(@oracle, :oracle).each_with_index do |sql,idx|
+		EachSQL(@oracle_script, :oracle).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
+			assert_equal @oracle[idx], sql
 		end
 	end
 
 	def test_mysql
-		EachSQL(@mysql, :mysql).each_with_index do |sql,idx|
+		EachSQL(@mysql_script, :mysql).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40
+			assert_equal @mysql[idx], sql
 		end
 	end
 

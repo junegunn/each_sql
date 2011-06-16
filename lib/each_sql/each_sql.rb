@@ -16,21 +16,17 @@ class EachSQL
 	end
 
 	def each
-		@input = @org_input
+		# Phase 1: comment out input
+		@input = @org_input.dup
+		@input_c = zero_out @org_input
+
 		return nil if @input.nil? || @input.empty?
 
 		@delimiter = @options[:delimiter]
 
-		reset_cursor
-		while @input
-			# First look for next delimiter, this is to reduce the search space for blocks.
-			extend_scope
-
-			# We're done. Finished. Period. Out!
-			break if scope.empty?
-
+		while @input && @input.length > 0
 			# Extract a statement
-			statement = extract_statement
+			statement = next_statement
 
 			# When a non-empty statement is found
 			statement = @options[:strip_delimiter].call self, statement if @options[:strip_delimiter]
@@ -59,75 +55,84 @@ class EachSQL
 
 	attr_accessor :delimiter, :delimiter_string
 private
+	def zero_out input
+		output = input.dup
+		idx = 0
+		# Look for the closest block
+		while true
+			block_start, opener_length, opener, closer = @blocks.map { |opener, closer|
+				md = output.match(opener, idx)
+				[md && md.begin(0), md && md[0].length, opener, closer]
+			}.reject { |e| e.first.nil? }.min_by(&:first)
+			break if block_start.nil?
 
-	def extract_statement
-		while process_next_block != :not_found
+			md = output.match closer, block_start + opener_length
+			idx = block_end = md ? md.end(0) : (output.length-1)
+
+			output[block_start...block_end] = ' ' * (block_end - block_start)
+		end
+		output
+	end
+
+	def next_statement
+		@cur = 0
+
+		while process_next_block != :done
 		end
 
-		ret = scope.strip
-		@input = @input[@next_head..-1]
-		reset_cursor
+		ret = @input[0...@cur].strip
+		@input   = @input[@cur..-1]
+		@input_c = @input_c[@cur..-1]
 		return ret
 	end
 
-	def reset_cursor
-		@cur = @from = @to = 0
-	end
-
-	def scope
-		@to ? @input[0, @to] : @input
-	end
-
-	def extend_scope
-		md = @input.match @delimiter, @to
-
-		if md
-			@to = md.begin(0) + md[0].length
-			@next_head = @to
-		else
-			@to = @input.length
-			@next_head = @input.length
-		end
-		#puts "Extended: #{scope.inspect} #{@input[@next_head..-1]}"
-	end
-
 	def process_next_block expect = nil
+		# Look for the closest delimiter
+		md = @input_c.match @delimiter, @cur
+		delim_start = md ? md.begin(0) : @input.length
+		delim_end   = md ? md.end(0) : @input.length
+
 		# Look for the closest block
-		block_start, opener_length, opener, closer = @all_blocks.map { |opener, closer|
+		target_blocks = 
+			if @options[:nesting_context].any? {|pat| @input_c.gsub($/, ' ').match pat }
+				@all_blocks
+			else
+				@blocks
+			end
+
+		block_start, body_start, opener, closer = target_blocks.map { |opener, closer|
 			closer = closer[:closer] if closer.is_a? Hash
-			md = scope.match(opener, @cur)
-			[md && md.begin(0), md && md[0].length, opener, closer]
+			md = @input_c.match(opener, @cur)
+			[md && md.begin(0), md && md.end(0), opener, closer]
 		}.reject { |e| e.first.nil? }.min_by(&:first)
 
-		# p [scope, scope[@cur..-1], expect, scope.index(expect, @cur), block_start] if expect
-		# We found a block, but after the end of the nesting block
-		if expect &&
-				(prev_end = scope.index(expect, @cur)) && 
-				(block_start.nil? || prev_end <= block_start)
-			skip_through_block expect, prev_end == block_start
-			return :end_nest
+		# If we're nested, look for the parent's closer as well
+		if expect && (md = @input_c.match expect, @cur) &&
+				(block_start.nil? || md.begin(0) < block_start)
+
+			@cur = md.end(0)
+			return :nest_closer
 		end
 	
-		# If no block in this scope
-		return :not_found if block_start.nil?
+		# No block until the next delimiter
+		if block_start.nil? || block_start > delim_start
+			@cur = delim_end
+			return :done
+		end
+
+		# #####################################
 
 		# We found a block. Look for the end of it
-		@cur = block_start + opener_length
+		@cur = body_start
 
 		# If nesting block, we go deeper
 		if @nblocks.keys.include? opener
-			@prev_delimiter = @delimiter
-			if @nblocks[opener].is_a? Hash
-				@delimiter = @nblocks[opener][:delimiter] || @delimiter
-			end
 			while true
 				ret = process_next_block(closer)
-
-				break if ret == :end_nest
-				extend_scope if ret == :not_found
-				throw_exception(closer) if scope.length == @input.length
+				break if ret == :nest_closer
+				throw_exception(closer) if @cur >= @input.length - 1
 			end
-			@delimiter = @prev_delimiter
+			return :done if @nblocks[opener].is_a?(Hash) && @nblocks[opener][:pop]
 
 		# If non-nesting block, just skip through it
 		else
@@ -137,22 +142,17 @@ private
 		return :continue
 	end
 
-	def skip_through_block closer, rewind_delimiter = false
-		md = @input.match closer, @cur
-		block_end = md && md.begin(0)
+	def skip_through_block closer
+		md = @input_c.match closer, @cur
+		throw_exception(closer) if md.nil?
 
-		throw_exception(closer) if block_end.nil?
-
-		@cur = block_end + (rewind_delimiter ? 0 : md[0].length)
-		while @cur > scope.length
-			extend_scope
-		end
+		@cur = md.end(0)
 	end
 
 	def throw_exception closer
 		raise ArgumentError.new(
 				"Unclosed block: was expecting #{closer.inspect} " +
-				"while processing #{$/ + scope.inspect}" + 
+				"while processing #{(@input[0, 60] + ' ... ').inspect}" + 
 				(@prev_statement ?
 					" after #{@prev_statement.inspect}" : ""))
 	end

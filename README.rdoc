@@ -31,9 +31,7 @@ Enumerate each SQL statement in the given SQL script.
 - pgplsql support.
 
 == Warning
-Should be good enough for regular SQLs, but it is not guaranteed to parse stored procedures correctly.
-I thought this would be simple when I first started, but actually it wasn't, and the code now is a mess.
-Use it at your own risk.
+Stored procedure handling is at best incomplete. Use it at your own risk.
 
 == Contributing to each_sql
  

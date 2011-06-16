@@ -20,14 +20,19 @@ class EachSQL
 		:default => {
 			:delimiter => /;+/,
 			:blocks => {
+				/`/          => /`/,
+				/"/          => /"/,
 				/'/          => /'/,
 				/\/\*[^+]/   => /\*\//,
 				/--+/        => $/,
 			},
 			:nesting_blocks => {
-				/\bdeclare\b/i => /\bbegin\b/i,
-				/\bbegin\b/i => /\bend\b/i
+				/\bdeclare.*?;\s*?begin\b/im => /;\s*?end\b/i,
+				/\bbegin\b/i => /;\s*?end\b/i,
 			},
+			:nesting_context => [
+				/\A\s*(begin|declare|create\b[^;]+\b(procedure|function|trigger|package))\b/im
+			],
 			:callbacks => {},
 			:ignore    => [],
 			:replace   => {},
@@ -38,6 +43,8 @@ class EachSQL
 		:mysql => {
 			:delimiter => /;+|delimiter\s+\S+/i,
 			:blocks => {
+				/`/          => /`/,
+				/"/          => /"/,
 				/'/          => /'/,
 				/\/\*[^+]/   => /\*\//,
 				/--+/        => $/,
@@ -45,6 +52,9 @@ class EachSQL
 			:nesting_blocks => {
 				/\bbegin\b/i => /\bend\b/i
 			},
+			:nesting_context => [
+				/\A\s*(begin|create\b[^;]+\b(procedure|function|trigger))\b/im
+			],
 			# We need to change delimiter on `delimiter' command
 			:callbacks => {
 				/^\s*delimiter\s+(\S+)/i => lambda { |obj, stmt, md|
@@ -65,20 +75,36 @@ class EachSQL
 		:oracle => {
 			:delimiter => /;+/,
 			:blocks => {
+				/`/          => /`/,
+				/"/          => /"/,
 				/'/          => /'/,
 				/\/\*[^+]/   => /\*\//,
 				/--+/        => $/,
 			},
 			:nesting_blocks => {
 				/\bbegin\b/i => /\bend\b/i,
+				/\bdeclare.*?;\s*?begin\b/im => {
+					:closer => %r{;\s*/}m,
+					# Stops immediately
+					:pop => true
+				},
 				/\bcreate[^;]*\b(procedure|function|trigger|package)\b/im => {
 					:closer => %r{;\s*/}m,
-					:delimiter => /;\s*\//
+					# Stops immediately
+					:pop => true
 				}
 			},
-			:callbacks => {},
+			:nesting_context => [
+				/\A\s*(begin|declare|create\b[^;]+\b(procedure|function|trigger|package))\b/im
+			],
+			:callbacks => {
+				/\Abegin\b/ => lambda { |obj, stmt, md|
+					# Oracle needs this
+					stmt << ';' if stmt !~ /;\Z/
+				}
+			},
 			:ignore => [],
-			:replace => {},
+			:replace => { %r[\A/] => '' },
 			:strip_delimiter => lambda { |obj, stmt| obj 
 				stmt.chomp( stmt =~ /;\s*\// ? '/' : ';' )
 			}
