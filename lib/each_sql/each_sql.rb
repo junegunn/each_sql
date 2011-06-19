@@ -16,14 +16,13 @@ class EachSQL
 	end
 
 	def each
-		# Phase 1: comment out input
 		@input = @org_input.dup
-		@input_c = zero_out @org_input
-
 		return nil if @input.nil? || @input.empty?
 
-		@delimiter = @options[:delimiter]
+		# Zero out comments and string literals to simplify subsequent parsing
+		@input_c = zero_out @org_input
 
+		@delimiter = @options[:delimiter]
 		while @input && @input.length > 0
 			# Extract a statement
 			statement = next_statement
@@ -44,8 +43,7 @@ class EachSQL
 				end
 
 				# Ignore
-				if statement.length > 0 && 
-						(@options[:ignore] || []).all? { |ipat| statement !~ ipat }
+				if (@options[:ignore] || []).all? { |ipat| statement !~ ipat }
 					yield statement
 					@prev_statement = statement
 				end
@@ -54,7 +52,9 @@ class EachSQL
 		nil
 	end
 
+	# To change delimiter while parsing the input
 	attr_accessor :delimiter, :delimiter_string
+
 private
 	def zero_out input
 		output = input.dup
@@ -82,7 +82,7 @@ private
 		end
 
 		ret = @input[0...@cur].strip
-		@input   = @input[@cur..-1]
+		@input   =   @input[@cur..-1]
 		@input_c = @input_c[@cur..-1]
 		return ret
 	end
@@ -91,9 +91,9 @@ private
 		# Look for the closest delimiter
 		md = match @input_c, @delimiter, @cur
 		delim_start = md ? md[:begin] : @input.length
-		delim_end   = md ? md[:end] : @input.length
+		delim_end   = md ? md[:end]   : @input.length
 
-		# Look for the closest block
+		# Look for the closest block depending on the current context
 		target_blocks = 
 			if @options[:nesting_context].any? {|pat| @input_c.match pat }
 				@all_blocks
@@ -121,8 +121,6 @@ private
 			return :done
 		end
 
-		# #####################################
-
 		# We found a block. Look for the end of it
 		@cur = body_start
 
@@ -143,6 +141,7 @@ private
 		return :continue
 	end
 
+	# For Ruby 1.8 compatibility
 	def match str, pat, idx
 		md = str[idx..-1].match(pat)
 		return nil if md.nil?
