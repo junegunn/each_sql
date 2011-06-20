@@ -1,3 +1,6 @@
+=== 0.2.1 / 2011/06/20
+* Fixed invalid gem packaging
+
 === 0.2.0 / 2011/06/17
 * Second release. Handles more cases.
 * Ruby 1.8 compatible
