@@ -218,6 +218,13 @@ select
 	end
 
 	def test_sql
+		[nil, "", " \n" * 10].each do |input|
+			EachSQL(input).each do |sql|
+				assert false, 'Should not enumerate'
+			end
+			assert true, 'No error expected'
+		end
+
 		script = @sql.map { |e| e.strip + ';' }.join $/
 		EachSQL(script).each_with_index do |sql,idx|
 			puts sql

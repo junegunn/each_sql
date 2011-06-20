@@ -8,7 +8,7 @@ class EachSQL
 	def initialize input, options
 		raise NotImplementedError.new if options.nil?
 		# immutables
-		@org_input = input.sub(/\A#{[65279].pack('U*')}/, '') # BOM
+		@org_input = input && input.sub(/\A#{[65279].pack('U*')}/, '') # BOM
 		@options = options
 		@blocks = @options[:blocks]
 		@nblocks = @options[:nesting_blocks]
@@ -16,8 +16,8 @@ class EachSQL
 	end
 
 	def each
+		return nil if @org_input.nil? || @org_input.empty?
 		@input = @org_input.dup
-		return nil if @input.nil? || @input.empty?
 
 		# Zero out comments and string literals to simplify subsequent parsing
 		@input_c = zero_out @org_input
