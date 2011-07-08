@@ -95,7 +95,7 @@ class EachSQL
 				}
 			},
 			:nesting_context => [
-				/\A\s*(begin|declare|create\b[^;]+?\b(procedure|function|trigger|package))\b/im
+				/\A\s*(\/\s*)*(begin|declare|create\b[^;]+?\b(procedure|function|trigger|package))\b/im
 			],
 			:callbacks => {
 				/\Abegin\b/ => lambda { |obj, stmt, md|
@@ -105,7 +105,7 @@ class EachSQL
 			},
 			:ignore => [],
 			:replace => { %r[\A/] => '' },
-			:strip_delimiter => lambda { |obj, stmt| obj 
+			:strip_delimiter => lambda { |obj, stmt|
 				stmt.gsub(/(#{stmt =~ /;\s*\// ? '/' : ';'})+\Z/, '')
 			}
 		}

@@ -95,7 +95,8 @@ exception
     when others then
         raise;
 end;",
-"declare
+"-- declaration
+declare
 	a int;
 begin
 	1 / 2;
@@ -110,9 +111,19 @@ end;",
 "begin
 	null;
 end;",
+"begin
+        null;
+    end;",
 "select * from dual",
 "select begin, end, create, procedure, end, from dual",
-"select * from dual"
+"select * from dual",
+"-- TMP_DB_TOOLS_CONV
+        begin
+            execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
+        exception
+            when others then
+                null;
+        end;"
 	]
 		
 	@oracle_script = "
@@ -138,6 +149,7 @@ exception
         raise;
 end;
 /
+-- declaration
 declare
 	a int;
 begin
@@ -155,6 +167,10 @@ begin
 	null;
 end;
 /
+    begin
+        null;
+    end;
+    /
 select * from dual;
 ;
 ;
@@ -166,6 +182,15 @@ select * from dual;
 
 select begin, end, create, procedure, end, from dual;
 select * from dual;
+
+        -- TMP_DB_TOOLS_CONV
+        begin
+            execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
+        exception
+            when others then
+                null;
+        end;
+        /
 "
 
 	@mysql = [

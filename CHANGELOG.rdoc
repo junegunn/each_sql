@@ -1,3 +1,6 @@
+=== 0.2.3 / 2011/07/08
+* Bug fix: Two Oracle PL/SQL parsing errors fixed
+
 === 0.2.2 / 2011/06/21
 * Bug fix: Error on nil/empty input
 

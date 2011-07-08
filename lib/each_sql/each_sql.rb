@@ -38,12 +38,13 @@ class EachSQL
 
 				# Process callbacks
 				@options[:callbacks].each do |pattern, callback|
-					md = statement.match pattern
+					#md = statement.match pattern
+					md = zero_out(statement).strip.match pattern
 					callback.call self, statement, md if md
 				end
 
 				# Ignore
-				if (@options[:ignore] || []).all? { |ipat| statement !~ ipat }
+				if (@options[:ignore] || []).all? { |ipat| statement !~ ipat } && statement.empty? == false
 					yield statement
 					@prev_statement = statement
 				end
