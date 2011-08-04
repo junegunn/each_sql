@@ -128,6 +128,10 @@ end;",
 		
 	@oracle_script = "
 select * from dual;
+;;;;;;;
+;;;
+;;
+
 create /* procedure */ sequence a;
 create package something as
 	procedure log;
@@ -235,8 +239,8 @@ begin
 end $$
 delimiter ;
 
-select * from dual;
-select b `begin` from dual;
+select * from dual;;;;;
+;;;select b `begin` from dual;
 select b \"begin\" from dual;
 select 
 	begin , begin.* from begin"
@@ -250,7 +254,7 @@ select
 			assert true, 'No error expected'
 		end
 
-		script = @sql.map { |e| e.strip + ';' }.join $/
+		script = @sql.map { |e| e.strip + ';;;;' }.join $/
 		EachSQL(script).each_with_index do |sql,idx|
 			puts sql
 			puts '-' * 40

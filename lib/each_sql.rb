@@ -37,7 +37,7 @@ class EachSQL
 			:ignore    => [],
 			:replace   => {},
 			# Let's assume we don't change delimiters within usual sql scripts
-			:strip_delimiter => lambda { |obj, stmt| stmt.chomp ';' }
+			:strip_delimiter => lambda { |obj, stmt| stmt.sub(/\A;+/, '').sub(/;+\Z/, '') }
 		},
 
 		:mysql => {
