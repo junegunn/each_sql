@@ -16,6 +16,11 @@ EachSQL(sql_script).each do |sql|
   puts sql
 end
 
+# .each can be omitted
+EachSQL(sql_script) do |sql|
+  puts sql
+end
+
 sqls = EachSQL(sql_script).to_a
 ```
 

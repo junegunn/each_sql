@@ -251,6 +251,15 @@ select
 			EachSQL(input).each do |sql|
 				assert false, 'Should not enumerate'
 			end
+
+			EachSQL(input) do |sql|
+				assert false, 'Should not enumerate'
+			end
+
+      # Directly pass block
+			EachSQL(input) do |sql|
+				assert false, 'Should not enumerate'
+			end
 			assert true, 'No error expected'
 		end
 
