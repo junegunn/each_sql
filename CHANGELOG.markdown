@@ -1,5 +1,6 @@
 ### 0.2.5 / 2011/09/01
 * Can pass block directly to EachSQL(script)
+
 ```ruby
 EachSQL(script) do |sql|
   # ...

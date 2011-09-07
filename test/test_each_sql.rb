@@ -252,10 +252,6 @@ select
 				assert false, 'Should not enumerate'
 			end
 
-			EachSQL(input) do |sql|
-				assert false, 'Should not enumerate'
-			end
-
       # Directly pass block
 			EachSQL(input) do |sql|
 				assert false, 'Should not enumerate'
@@ -269,6 +265,12 @@ select
 			puts '-' * 40
 			assert_equal @sql[idx], sql
 		end
+
+		cnt = 0
+		EachSQL(script) do |sql|
+			cnt += 1
+		end
+		assert_equal cnt, EachSQL(script).to_a.length
 		assert_equal EachSQL(script).to_a, EachSQL(script).map { |e| e }
 	end
 	
