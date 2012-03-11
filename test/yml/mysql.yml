@@ -1,0 +1,56 @@
+---
+all: |
+  delimiter //
+  drop procedure if exists proc //
+  create procedure proc(p1 int, p2 int)
+  begin
+      null;
+    begin
+      null;
+    end;
+  end //
+  delimiter ;
+
+  delimiter $$
+  drop procedure if exists proc2 $$
+  create procedure proc(p1 int, p2 int)
+  begin
+      null;
+
+  end $$
+  delimiter ;
+  select * from dual;;;;;
+  select 
+    begin , begin.* from begin;
+  ;;;select b `begin` from dual;
+  select b \"begin\" from dual;
+  select 
+    begin , begin.* from begin
+
+each:
+  - drop procedure if exists proc
+  - |
+    create procedure proc(p1 int, p2 int)
+    begin
+        null;
+      begin
+        null;
+      end;
+    end
+  - drop procedure if exists proc2
+  - |
+    create procedure proc(p1 int, p2 int)
+    begin
+        null;
+
+    end
+  - select * from dual
+  - |
+    select 
+      begin , begin.* from begin
+  - select b `begin` from dual
+  - select b \"begin\" from dual
+  - |
+    select 
+      begin , begin.* from begin
+

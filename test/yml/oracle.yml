@@ -1,0 +1,187 @@
+---
+all: |
+  select * from dual;
+  ;;;;;;;
+  ;;;
+  ;;
+
+  create /* procedure */ sequence a;
+  create package something as
+    procedure log;
+    procedure log;
+    procedure log;
+  end something;
+  /
+
+  Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
+      str number(8, 2) := 1 / 4;
+  begin
+    1 / 2;
+    begin
+      1 / 4;
+      null;
+    end;
+  exception
+      when others then
+          raise;
+  end;
+  /
+  -- declaration
+  declare
+    a int;
+  begin
+    1 / 2;
+    begin
+      1 / 4;
+      null;
+    end;
+  exception
+      when others then
+          raise;
+  end;
+  /
+  begin
+    null;
+  end;
+  /
+      begin
+          null;
+      end;
+      /
+  select * from dual;
+  ;
+  ;
+  ;
+
+  -------------- begin-end block;
+  Declare
+    /* end; */
+    /* begin */
+    null;
+    null;
+    null;
+  begin
+    /* end */
+    null;
+  end;
+  ;;;;;;
+  Declare
+    /* end; */
+    /* begin */
+    null;
+    a NUMBER := 1;
+    null;
+  begin
+    -- begin-end block;
+    -- line comment
+    -- line comment
+    -- line comment
+    begin
+      null;
+      begin
+        null;
+      end;
+    end;
+    -- end
+    /* end */
+  end
+  ;
+
+  select begin, end, create, procedure, end, from dual;
+  select * from dual;
+
+          -- TMP_DB_TOOLS_CONV
+          begin
+              execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
+          exception
+              when others then
+                  null;
+          end;
+          /
+each:
+  - select * from dual
+  - create /* procedure */ sequence a
+  - |
+    create package something as
+      procedure log;
+      procedure log;
+      procedure log;
+    end something;
+  - |
+    Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
+        str number(8, 2) := 1 / 4;
+    begin
+      1 / 2;
+      begin
+        1 / 4;
+        null;
+      end;
+    exception
+        when others then
+            raise;
+    end;
+
+  - |
+    declare
+      a int;
+    begin
+      1 / 2;
+      begin
+        1 / 4;
+        null;
+      end;
+    exception
+        when others then
+            raise;
+    end
+  - |
+    begin
+      null;
+    end
+  - |
+      begin
+          null;
+      end;
+  - select * from dual
+  - |
+    Declare
+      /* end; */
+      /* begin */
+      null;
+      null;
+      null;
+    begin
+      /* end */
+      null;
+    end;
+  - |
+    Declare
+      /* end; */
+      /* begin */
+      null;
+      a NUMBER := 1;
+      null;
+    begin
+      -- begin-end block;
+      -- line comment
+      -- line comment
+      -- line comment
+      begin
+        null;
+        begin
+          null;
+        end;
+      end;
+      -- end
+      /* end */
+    end;
+
+  - select begin, end, create, procedure, end, from dual
+  - select * from dual
+  - |
+          begin
+              execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
+          exception
+              when others then
+                  null;
+          end;

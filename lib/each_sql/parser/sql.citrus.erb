@@ -1,0 +1,155 @@
+grammar EachSQL::Parser::Default<%= suffix %>
+  rule program
+    (execution_block | empty)* leftover
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule declare
+    /\bdeclare\b/i
+  end
+
+  rule begin_block
+    /\bbegin\b/i
+  end
+
+  rule end_block
+    /\bend\b/i
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    # We can't handle variables
+    # /\b(select|declare|update|delete|insert|merge|with|create|alter|drop|truncate|commit|rollback|savepoint|open|fetch|close|prepare|execute|exec|grant|revoke|connect|disconnect|set|get|null)\b/i
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule delimiters
+    empty* delimiter (empty | delimiter)*
+  end
+
+  rule leftover
+    .*
+  end
+
+  rule chunk
+    (qword | dqword | btword | word)
+  end
+
+  rule empty
+    c_comment | l_comment | space
+  end
+
+  rule c_comment
+    '/*' (!'*/' .)* '*/'
+  end
+
+  rule l_comment
+    '--' (![\n\Z] .)*
+  end
+
+  rule qword
+    sq (!sq .)* sq
+  end
+
+  rule dqword
+    dq (!dq .)* dq
+  end
+
+  rule btword
+    bt (!bt .)* bt
+  end
+
+  rule word
+     !(delimiter | '/*' | "--" | sq | dq | bt) .
+  end
+
+  rule space
+    [\s]
+  end
+
+  rule newline
+    "\n"
+  end
+
+  rule sq
+    "'"
+  end
+
+  rule dq
+    '"'
+  end
+
+  # Not ANSI standard. but.. wouldn't hurt.
+  rule bt
+    '`'
+  end
+
+  rule delimiter
+    <%= delimiter.qq('\"') %>
+  end
+end
+
+grammar EachSQL::Parser::MySQL<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  rule root
+    (execution_block | empty)* leftover
+  end
+
+  rule execution_block
+    (creation | begin_end_block | sql_statement)
+  end
+
+  # MySQL does not allow altering the body
+  rule creation
+    ( /\bcreate\b/i (empty+ /or/i empty+ /replace/i)? empty+ ) 
+    /(procedure|function|trigger)/i chunk+ delimiter
+  end
+end
+
+grammar EachSQL::Parser::Oracle<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  rule root
+    (execution_block | empty)* leftover
+  end
+
+  rule execution_block
+    (creation | declare_begin_end_block | begin_end_block | sql_statement)
+  end
+
+  rule declare_begin_end_block
+    declare sql_statement+ begin_end_block
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+    !(begin_block | declare)
+    (chunk | empty)* delimiters
+  end
+
+  rule creation
+    ( /\bcreate\b/i (empty+ /or/i empty+ /replace/i)? empty+ ) 
+    /\b(procedure|function|trigger|package)\b/i chunk+ delimiter
+  end
+
+  rule delimiter
+    <%= delimiter.qq('\"') %> (empty* '/')?
+  end
+end
+

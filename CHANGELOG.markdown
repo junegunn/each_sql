@@ -1,3 +1,12 @@
+### 0.3.0 / 2012/03/10
+* I thought this would be trivial, thought that I didn't need a real parser for
+  just breaking SQL scripts into individual statements that could be run.
+  But I couldn't be more wrong. Codes for handling a few exceptional cases
+  soon piled up and became unmaintainable.
+  This new version now employs Citrus parser for handling SQL scripts.
+  The output is not backward-compatible, for example, comments before and after
+  each execution block are trimmed out.
+
 ### 0.2.5 / 2011/09/01
 * Can pass block directly to EachSQL(script)
 
