@@ -1,3 +1,5 @@
+require 'stringio'
+
 # Enumerable EachSQL object.
 class EachSQL
   include Enumerable
@@ -26,12 +28,12 @@ class EachSQL
   def shift
     result = @parser.parse @data
     # puts result.dump
-    @data  = result[:leftover].join
+    @data = result.captures[:leftover].join
     {
       :sqls =>
-        result.captures[:execution_block].map { |sql| strip_sql sql },
+        result.captures[:execution_block].map { |b| strip_sql b },
       :leftover =>
-        result.captures[:leftover].map { |lo| strip_sql lo }.reject(&:empty?)
+        result.captures[:leftover].map { |b| strip_sql b }.reject(&:empty?)
     }
   end
 
@@ -44,24 +46,39 @@ class EachSQL
   # @return [NilClass]
   def each
     result = shift
-    sqls = (result[:sqls] + result[:leftover]).reject { |sql|
-      strip_sql(sql).empty?
-    }
+    sqls = (result[:sqls] + result[:leftover]).
+            map { |sql| strip_sql(sql) }.
+            reject(&:empty?)
     sqls.each do |sql|
       yield sql
     end
   end
 
   private
-
   def strip_sql sql
+    # Preprocess
+    case @type
+    when :oracle
+      sql = sql.sub(/\A[\s\/]+/, '').sub(/[\s\/]+\Z/, '')
+    end
+
     prev_sql = nil
     while prev_sql != sql
       prev_sql = sql
       sql = sql.strip.gsub(/\A(#{Regexp.escape @delim})+/, '').
                       gsub(/(#{Regexp.escape @delim})+\Z/, '').strip
     end
-    prev_sql
+
+    # Postprocess
+    case @type
+    when :oracle
+      if sql =~ /\bend(\s+\S+)?\Z/i
+        sql = sql + ';'
+      end
+    end
+
+    sql
   end
+
 end#EachSQL
 

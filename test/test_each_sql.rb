@@ -21,8 +21,7 @@ class TestEachSql < Test::Unit::TestCase
   end
 
 	def test_sql
-    #[:default, :mysql, :oracle].each do |typ|
-    [:default].each do |typ|
+    [:default, :mysql, :oracle].each do |typ|
       data = YAML.load File.read File.join(File.dirname(__FILE__), "yml/#{typ}.yml")
       script = data['all']
       EachSQL(script, typ).each_with_index do |sql,idx|

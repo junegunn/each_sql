@@ -53,6 +53,9 @@ all: |
   ;
   ;
 
+  delimiter $$
+  delimiter ;
+
   -------------- begin-end block;
   Declare
     /* end; */
@@ -60,10 +63,12 @@ all: |
     null;
     null;
     null;
+    a := 3 / 1;
   begin
     /* end */
     null;
   end;
+  /
   ;;;;;;
   Declare
     /* end; */
@@ -86,6 +91,7 @@ all: |
     /* end */
   end
   ;
+  /
 
   select begin, end, create, procedure, end, from dual;
   select * from dual;
@@ -133,15 +139,15 @@ each:
     exception
         when others then
             raise;
-    end
+    end;
   - |
     begin
       null;
-    end
+    end;
   - |
       begin
-          null;
-      end;
+              null;
+          end;
   - select * from dual
   - |
     Declare
@@ -150,6 +156,7 @@ each:
       null;
       null;
       null;
+      a := 3 / 1;
     begin
       /* end */
       null;
@@ -179,9 +186,9 @@ each:
   - select begin, end, create, procedure, end, from dual
   - select * from dual
   - |
-          begin
-              execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
-          exception
-              when others then
-                  null;
-          end;
+    begin
+                execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
+            exception
+                when others then
+                    null;
+            end;

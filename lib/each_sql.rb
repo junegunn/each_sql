@@ -3,7 +3,7 @@
 
 require 'rubygems'
 require 'each_sql/each_sql'
-require 'each_sql/parser/parser'
+require 'each_sql/parser'
 
 # Shortcut method for creating a Enumerable EachSQL object for the given input.
 # @param[String] input Input script.

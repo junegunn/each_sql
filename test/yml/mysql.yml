@@ -4,7 +4,8 @@ all: |
   drop procedure if exists proc //
   create procedure proc(p1 int, p2 int)
   begin
-      null;
+    null;
+    /* end; // */
     begin
       null;
     end;
@@ -32,7 +33,8 @@ each:
   - |
     create procedure proc(p1 int, p2 int)
     begin
-        null;
+      null;
+      /* end; // */
       begin
         null;
       end;

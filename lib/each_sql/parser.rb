@@ -8,7 +8,7 @@ module Parser
   def self.parser_for type, delimiter = ';'
     # Is there any better way of handling dynamic changes?
 
-    path   = File.join( File.dirname(__FILE__), 'sql.citrus.erb' )
+    path   = File.join( File.dirname(__FILE__), 'parser/sql.citrus.erb' )
     erb    = Erubis::Eruby.new( File.read path )
     suffix = (@@counter += 1).to_s
 
@@ -26,6 +26,7 @@ module Parser
         "Parser not implemented for #{type}. Try use :default instead.")
     end
   end
+
 end#Parser
 end#EachSQL
 
