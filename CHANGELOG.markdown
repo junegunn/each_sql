@@ -1,11 +1,15 @@
 ### 0.3.0 / 2012/03/10
-* I thought this would be trivial, thought that I didn't need a real parser for
-  just breaking SQL scripts into individual statements that could be run.
-  But I couldn't be more wrong. Codes for handling a few exceptional cases
-  soon piled up and became unmaintainable.
-  This new version now employs Citrus parser for handling SQL scripts.
-  The output is not backward-compatible, for example, comments before and after
-  each execution block are trimmed out.
+* Internal implementation revised.
+ * At first, I thought this would be trivial, 
+   that I didn't need a real parser for just breaking SQL scripts
+   into individual executable units.
+   I couldn't be more wrong. Codes for handling a few exceptional cases
+   soon piled up and became unmaintainable.
+   The new version now employs Citrus parser for processing SQL scripts.
+   The output is not backward-compatible, for instantce, comments before and after
+   each execution block are trimmed out.
+* Supports PostgreSQL (experimental)
+* `delimiter` command works for all types
 
 ### 0.2.5 / 2011/09/01
 * Can pass block directly to EachSQL(script)

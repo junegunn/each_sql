@@ -4,6 +4,7 @@ require 'stringio'
 class EachSQL
   include Enumerable
 
+  # @param[Symbol] type RDBMS type: :default|:mysql|:oracle|:postgres
   def initialize type
     @type   = type
     @data   = ''
@@ -12,11 +13,16 @@ class EachSQL
     self.delimiter = ';'
   end
 
+  # @param[String] delim SQL delimiter
+  # @return[EachSQL]
   def delimiter= delim
     @delim = delim
     @parser = EachSQL::Parser.parser_for @type, delim
+    self
   end
 
+  # Appends the given String to the buffer.
+  # @param[String] input String to append
   def << input
     if input
       @data << input.sub(/\A#{[65279].pack('U*')}/, '') # BOM (FIXME)
@@ -24,31 +30,35 @@ class EachSQL
     self
   end
 
+  # Parses current buffer and returns the result in Hash.
+  # :sqls is an Array of processed executable SQL blocks,
+  # :leftover is the unparsed trailing data
   # @return [Hash]
   def shift
-    result = @parser.parse @data
-    # puts result.dump
-    @data = result.captures[:leftover].join
+    result   = @parser.parse @data
+    @data    = result.captures[:leftover].join
+    leftover = strip_sql(@data)
     {
       :sqls =>
         result.captures[:execution_block].map { |b| strip_sql b },
-      :leftover =>
-        result.captures[:leftover].map { |b| strip_sql b }.reject(&:empty?)
+      :leftover => leftover.empty? ? nil : leftover
     }
   end
 
+  # Return is the buffer is empty
   # @return [Boolean]
   def empty?
     @data.gsub(/\s/, '').empty?
   end
 
+  # Parses the buffer and enumerates through the executable blocks.
   # @yield [String]
   # @return [NilClass]
   def each
     result = shift
-    sqls = (result[:sqls] + result[:leftover]).
-            map { |sql| strip_sql(sql) }.
-            reject(&:empty?)
+    sqls   = (result[:sqls] + result[:leftover]).
+              map { |sql| strip_sql(sql) }.
+              reject(&:empty?)
     sqls.each do |sql|
       yield sql
     end
@@ -62,12 +72,14 @@ class EachSQL
       sql = sql.sub(/\A[\s\/]+/, '').sub(/[\s\/]+\Z/, '')
     end
 
-    prev_sql = nil
-    while prev_sql != sql
-      prev_sql = sql
-      sql = sql.strip.gsub(/\A(#{Regexp.escape @delim})+/, '').
-                      gsub(/(#{Regexp.escape @delim})+\Z/, '').strip
-    end
+    sql = sql.gsub(
+            /
+             (?:
+               (?:\A(?:#{Regexp.escape @delim}|[\s]+)+)
+               |
+               (?:(?:#{Regexp.escape @delim}|[\s]+)+\Z)
+             )+
+            /x, '')
 
     # Postprocess
     case @type

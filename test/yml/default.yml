@@ -1,86 +1,21 @@
 ---
 all: |
-  select * from a;
-  select
-    *
-  from
-    b;
-  select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c;
-
-  select
-    /*+ help */ *
-  from
-    d;
-  select * from /* block comment ; */ e;
-  select * 
-  from -- line comment ; /* ;; */
-  f;
-  begin
-    delete from table;
-  end;
-  -------------- begin-end block;
-  begin
-    -- begin-end block;
-    -- line comment
-    -- line comment
-    -- line comment
-    begin
-      null;
-      begin
-        null;
-      end;
-    end;
-    -- end
-    /* end */
-  end;
   select * from dual;
   DECLARE UDF1CUR CURSOR FOR SELECT UDF2();
   select 
     begin , begin.* from begin;
   select b `begin` from dual;
+  commit;
+  rollback;
   select b "begin" from dual
 
 each:
-- select * from a
-- |
-  select
-    *
-  from
-    b
-- select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c
-- |
-  select
-    /*+ help */ *
-  from
-    d
-- select * from /* block comment ; */ e
-- |
-  select * 
-  from -- line comment ; /* ;; */
-  f
-- |
-  begin
-    delete from table;
-  end
-- |
-  begin
-    -- begin-end block;
-    -- line comment
-    -- line comment
-    -- line comment
-    begin
-      null;
-      begin
-        null;
-      end;
-    end;
-    -- end
-    /* end */
-  end
 - select * from dual
 - DECLARE UDF1CUR CURSOR FOR SELECT UDF2()
 - |
   select 
     begin , begin.* from begin
 - select b `begin` from dual
+- commit
+- rollback
 - select b "begin" from dual

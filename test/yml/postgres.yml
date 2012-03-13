@@ -1,0 +1,234 @@
+---
+all: |
+  CREATE FUNCTION check_password(uname TEXT, pass TEXT)
+  RETURNS BOOLEAN AS $$
+  DECLARE passed BOOLEAN;
+          old_path TEXT;
+  BEGIN
+          -- Save old search_path; notice we must qualify current_setting
+          -- to ensure we invoke the right function
+          old_path := pg_catalog.current_setting('search_path');
+
+          -- Set a secure search_path: trusted schemas, then 'pg_temp'.
+          -- We set is_local = true so that the old value will be restored
+          -- in event of an error before we reach the function end.
+          PERFORM pg_catalog.set_config('search_path', 'admin, pg_temp', true);
+
+          -- Do whatever secure work we came for.
+          SELECT  (pwd = $2) INTO passed
+          FROM    pwds
+          WHERE   username = $1;
+
+          -- Restore caller's search_path
+          PERFORM pg_catalog.set_config('search_path', old_path, true);
+
+          RETURN passed;
+  END;
+  $$ LANGUAGE plpgsql SECURITY DEFINER;
+  select
+    $$Dianne's horse$$
+  from
+    dual;
+  commit;
+  CREATE OR REPLACE FUNCTION increment(i integer) RETURNS integer AS $$
+          BEGIN
+                  RETURN i + 1;
+          END;
+  $$ LANGUAGE plpgsql;
+  select $SomeTag$Dianne's horse$SomeTag$, 'hello' from dual;
+  CREATE OR REPLACE FUNCTION maint_sales_summary_bytime() RETURNS TRIGGER AS $maint_sales_summary_bytime$
+      DECLARE
+          delta_time_key          integer;
+          delta_amount_sold       numeric(15,2);
+          delta_units_sold        numeric(12);
+          delta_amount_cost       numeric(15,2);
+      BEGIN
+
+          -- Work out the increment/decrement amount(s).
+          IF (TG_OP = 'DELETE') THEN
+
+              delta_time_key = OLD.time_key;
+              delta_amount_sold = -1 * OLD.amount_sold;
+              delta_units_sold = -1 * OLD.units_sold;
+              delta_amount_cost = -1 * OLD.amount_cost;
+
+          ELSIF (TG_OP = 'UPDATE') THEN
+
+              -- forbid updates that change the time_key -
+              -- (probably not too onerous, as DELETE + INSERT is how most 
+              -- changes will be made).
+              IF ( OLD.time_key != NEW.time_key) THEN
+                  RAISE EXCEPTION 'Update of time_key : % -> % not allowed', OLD.time_key, NEW.time_key;
+              END IF;
+
+              delta_time_key = OLD.time_key;
+              delta_amount_sold = NEW.amount_sold - OLD.amount_sold;
+              delta_units_sold = NEW.units_sold - OLD.units_sold;
+              delta_amount_cost = NEW.amount_cost - OLD.amount_cost;
+
+          ELSIF (TG_OP = 'INSERT') THEN
+
+              delta_time_key = NEW.time_key;
+              delta_amount_sold = NEW.amount_sold;
+              delta_units_sold = NEW.units_sold;
+              delta_amount_cost = NEW.amount_cost;
+
+          END IF;
+
+
+          -- Insert or update the summary row with the new values.
+          <<insert_update>>
+          LOOP
+              UPDATE sales_summary_bytime
+                  SET amount_sold = amount_sold + delta_amount_sold,
+                      units_sold = units_sold + delta_units_sold,
+                      amount_cost = amount_cost + delta_amount_cost
+                  WHERE time_key = delta_time_key;
+
+              EXIT insert_update WHEN found;    
+
+              BEGIN
+                  INSERT INTO sales_summary_bytime (
+                              time_key, 
+                              amount_sold, 
+                              units_sold, 
+                              amount_cost)
+                      VALUES ( 
+                              delta_time_key,
+                              delta_amount_sold,
+                              delta_units_sold,
+                              delta_amount_cost
+                             );
+
+                  EXIT insert_update;
+
+              EXCEPTION
+                  WHEN UNIQUE_VIOLATION THEN
+                      -- do nothing
+              END;
+          END LOOP insert_update;
+
+          RETURN NULL;
+
+      END;
+  $maint_sales_summary_bytime$ LANGUAGE plpgsql;
+  rollback;
+
+each:
+- |
+  CREATE FUNCTION check_password(uname TEXT, pass TEXT)
+  RETURNS BOOLEAN AS $$
+  DECLARE passed BOOLEAN;
+          old_path TEXT;
+  BEGIN
+          -- Save old search_path; notice we must qualify current_setting
+          -- to ensure we invoke the right function
+          old_path := pg_catalog.current_setting('search_path');
+
+          -- Set a secure search_path: trusted schemas, then 'pg_temp'.
+          -- We set is_local = true so that the old value will be restored
+          -- in event of an error before we reach the function end.
+          PERFORM pg_catalog.set_config('search_path', 'admin, pg_temp', true);
+
+          -- Do whatever secure work we came for.
+          SELECT  (pwd = $2) INTO passed
+          FROM    pwds
+          WHERE   username = $1;
+
+          -- Restore caller's search_path
+          PERFORM pg_catalog.set_config('search_path', old_path, true);
+
+          RETURN passed;
+  END;
+  $$ LANGUAGE plpgsql SECURITY DEFINER
+- |
+  select
+    $$Dianne's horse$$
+  from
+    dual
+- commit
+- |
+  CREATE OR REPLACE FUNCTION increment(i integer) RETURNS integer AS $$
+          BEGIN
+                  RETURN i + 1;
+          END;
+  $$ LANGUAGE plpgsql
+- select $SomeTag$Dianne's horse$SomeTag$, 'hello' from dual
+- |
+  CREATE OR REPLACE FUNCTION maint_sales_summary_bytime() RETURNS TRIGGER AS $maint_sales_summary_bytime$
+      DECLARE
+          delta_time_key          integer;
+          delta_amount_sold       numeric(15,2);
+          delta_units_sold        numeric(12);
+          delta_amount_cost       numeric(15,2);
+      BEGIN
+
+          -- Work out the increment/decrement amount(s).
+          IF (TG_OP = 'DELETE') THEN
+
+              delta_time_key = OLD.time_key;
+              delta_amount_sold = -1 * OLD.amount_sold;
+              delta_units_sold = -1 * OLD.units_sold;
+              delta_amount_cost = -1 * OLD.amount_cost;
+
+          ELSIF (TG_OP = 'UPDATE') THEN
+
+              -- forbid updates that change the time_key -
+              -- (probably not too onerous, as DELETE + INSERT is how most 
+              -- changes will be made).
+              IF ( OLD.time_key != NEW.time_key) THEN
+                  RAISE EXCEPTION 'Update of time_key : % -> % not allowed', OLD.time_key, NEW.time_key;
+              END IF;
+
+              delta_time_key = OLD.time_key;
+              delta_amount_sold = NEW.amount_sold - OLD.amount_sold;
+              delta_units_sold = NEW.units_sold - OLD.units_sold;
+              delta_amount_cost = NEW.amount_cost - OLD.amount_cost;
+
+          ELSIF (TG_OP = 'INSERT') THEN
+
+              delta_time_key = NEW.time_key;
+              delta_amount_sold = NEW.amount_sold;
+              delta_units_sold = NEW.units_sold;
+              delta_amount_cost = NEW.amount_cost;
+
+          END IF;
+
+
+          -- Insert or update the summary row with the new values.
+          <<insert_update>>
+          LOOP
+              UPDATE sales_summary_bytime
+                  SET amount_sold = amount_sold + delta_amount_sold,
+                      units_sold = units_sold + delta_units_sold,
+                      amount_cost = amount_cost + delta_amount_cost
+                  WHERE time_key = delta_time_key;
+
+              EXIT insert_update WHEN found;    
+
+              BEGIN
+                  INSERT INTO sales_summary_bytime (
+                              time_key, 
+                              amount_sold, 
+                              units_sold, 
+                              amount_cost)
+                      VALUES ( 
+                              delta_time_key,
+                              delta_amount_sold,
+                              delta_units_sold,
+                              delta_amount_cost
+                             );
+
+                  EXIT insert_update;
+
+              EXCEPTION
+                  WHEN UNIQUE_VIOLATION THEN
+                      -- do nothing
+              END;
+          END LOOP insert_update;
+
+          RETURN NULL;
+
+      END;
+  $maint_sales_summary_bytime$ LANGUAGE plpgsql
+- rollback

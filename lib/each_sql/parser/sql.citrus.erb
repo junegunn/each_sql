@@ -1,6 +1,10 @@
 grammar EachSQL::Parser::Default<%= suffix %>
   rule program
-    (execution_block | empty | delimiter)* leftover
+    (execution_block | empty | delimiter)* leftover?
+  end
+
+  rule leftover
+    .+
   end
 
   rule execution_block
@@ -24,7 +28,6 @@ grammar EachSQL::Parser::Default<%= suffix %>
 
   rule end_block
     # end something
-
     /\bend\b/i (empty+ chunk*)?
   end
 
@@ -42,24 +45,8 @@ grammar EachSQL::Parser::Default<%= suffix %>
     (empty | delimiter)*
   end
 
-  rule leftover
-    .*
-  end
-
   rule chunk
     (qword | dqword | btword | word)
-  end
-
-  rule empty
-    c_comment | l_comment | space
-  end
-
-  rule c_comment
-    '/*' (!'*/' .)* '*/'
-  end
-
-  rule l_comment
-    '--' (![\n\Z] .)*
   end
 
   rule qword
@@ -78,12 +65,20 @@ grammar EachSQL::Parser::Default<%= suffix %>
      !(space | delimiter | '/*' | "--" | sq | dq | bt) .
   end
 
-  rule space
-    [\s]
+  rule empty
+    c_comment | l_comment | space
   end
 
-  rule newline
-    "\n"
+  rule c_comment
+    '/*' (!'*/' .)* '*/'
+  end
+
+  rule l_comment
+    '--' (![\n\Z] .)*
+  end
+
+  rule space
+    [\s]
   end
 
   rule sq
@@ -109,6 +104,91 @@ grammar EachSQL::Parser::MySQL<%= suffix %>
 
   rule root
     (execution_block | empty | delimiter)* leftover
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule end_block
+    # end something
+    /\bend\b/i (empty+ chunk*)?
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule chunk
+    (qword | dqword | btword | word)
+  end
+
+  rule qword
+    # Order matters
+    sq ("\\'" | (!sq .))* sq
+  end
+end
+
+grammar EachSQL::Parser::PostgreSQL<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  # TODO: code dupe
+
+  rule root
+    (execution_block | empty | delimiter)* leftover
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule end_block
+    # end something
+    /\bend\b/i (empty+ chunk*)?
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule chunk
+    (dollar_tag | double_dollar | qword | dqword | btword | word)
+  end
+
+  rule word
+     !(space | delimiter | '/*' | "--" | /\$[^$\s]+\$/ | '$$' | sq | dq | bt) .
+  end
+
+  rule dollar_tag
+    /(\$[^$\s]+\$).*?\1/m
+  end
+
+  rule double_dollar
+    '$$' (!'$$' .)* '$$'
   end
 end
 

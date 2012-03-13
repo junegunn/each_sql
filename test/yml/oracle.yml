@@ -1,11 +1,12 @@
 ---
 all: |
-  select * from dual;
+  select *, q'[hello]' from dual;
   ;;;;;;;
   ;;;
   ;;
 
   create /* procedure */ sequence a;
+  execute immediate 'create table "a" (a int)';
   create package something as
     procedure log;
     procedure log;
@@ -105,8 +106,9 @@ all: |
           end;
           /
 each:
-  - select * from dual
+  - select *, q'[hello]' from dual
   - create /* procedure */ sequence a
+  - execute immediate 'create table "a" (a int)'
   - |
     create package something as
       procedure log;

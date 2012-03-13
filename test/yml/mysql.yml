@@ -26,7 +26,28 @@ all: |
   ;;;select b `begin` from dual;
   select b \"begin\" from dual;
   select 
-    begin , begin.* from begin
+    begin , begin.* from begin;
+
+  drop table if exists `test1`.`test_table`;
+  CREATE  TABLE `test1`.`test_table` (
+    `id` INT NOT NULL AUTO_INCREMENT COMMENT 'Primary key' ,
+    `name` VARCHAR(45) NOT NULL COMMENT '\'Name\' of the record.' ,
+    `weight` FLOAT(23) NOT NULL ,
+    `price` DECIMAL(10, 2) NOT NULL COMMENT 'Price.' ,
+    `quantity` BIGINT NOT NULL DEFAULT 0 COMMENT 'Quantity.' ,
+    `summary` VARCHAR(5000) NULL COMMENT 'Summary.' ,
+    `description` TEXT NULL COMMENT 'Long description of the record.' ,
+    `updated_at` timestamp,
+    `created_at` DATETIME NOT NULL ,
+    `deleted_at` timestamp null,
+    
+    PRIMARY KEY (`id`) ,
+    INDEX `price_quantity_idx` (`price` ASC, `quantity` ASC),
+    UNIQUE INDEX `name_uidx` (`name`) )
+  ENGINE = InnoDB
+  COMMENT = 'Test escaping of \' single quote';
+  set autocommit on;
+  set autocommit off;
 
 each:
   - drop procedure if exists proc
@@ -55,4 +76,24 @@ each:
   - |
     select 
       begin , begin.* from begin
-
+  - drop table if exists `test1`.`test_table`
+  - |
+    CREATE  TABLE `test1`.`test_table` (
+      `id` INT NOT NULL AUTO_INCREMENT COMMENT 'Primary key' ,
+      `name` VARCHAR(45) NOT NULL COMMENT '\'Name\' of the record.' ,
+      `weight` FLOAT(23) NOT NULL ,
+      `price` DECIMAL(10, 2) NOT NULL COMMENT 'Price.' ,
+      `quantity` BIGINT NOT NULL DEFAULT 0 COMMENT 'Quantity.' ,
+      `summary` VARCHAR(5000) NULL COMMENT 'Summary.' ,
+      `description` TEXT NULL COMMENT 'Long description of the record.' ,
+      `updated_at` timestamp,
+      `created_at` DATETIME NOT NULL ,
+      `deleted_at` timestamp null,
+      
+      PRIMARY KEY (`id`) ,
+      INDEX `price_quantity_idx` (`price` ASC, `quantity` ASC),
+      UNIQUE INDEX `name_uidx` (`name`) )
+    ENGINE = InnoDB
+    COMMENT = 'Test escaping of \' single quote'
+  - set autocommit on
+  - set autocommit off
