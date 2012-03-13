@@ -1,0 +1,239 @@
+grammar EachSQL::Parser::Default<%= suffix %>
+  rule program
+    (execution_block | empty | delimiter)* leftover?
+  end
+
+  rule leftover
+    .+
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule declare
+    /\bdeclare\b/i
+  end
+
+  rule begin_block
+    /\bbegin\b/i
+  end
+
+  rule end_block
+    # end something
+    /\bend\b/i (empty+ chunk*)?
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule delimiters
+    empty* delimiter 
+    (empty | delimiter)*
+  end
+
+  rule chunk
+    (qword | dqword | btword | word)
+  end
+
+  rule qword
+    sq (!sq .)* sq
+  end
+
+  rule dqword
+    dq (!dq .)* dq
+  end
+
+  rule btword
+    bt (!bt .)* bt
+  end
+
+  rule word
+     !(space | delimiter | '/*' | "--" | sq | dq | bt) .
+  end
+
+  rule empty
+    c_comment | l_comment | space
+  end
+
+  rule c_comment
+    '/*' (!'*/' .)* '*/'
+  end
+
+  rule l_comment
+    '--' (![\n\Z] .)*
+  end
+
+  rule space
+    [\s]
+  end
+
+  rule sq
+    "'"
+  end
+
+  rule dq
+    '"'
+  end
+
+  # Not ANSI standard. but.. wouldn't hurt.
+  rule bt
+    '`'
+  end
+
+  rule delimiter
+    <%= delimiter.qq('\"') %>
+  end
+end
+
+grammar EachSQL::Parser::MySQL<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  rule root
+    (execution_block | empty | delimiter)* leftover?
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule end_block
+    # end something
+    /\bend\b/i (empty+ chunk*)?
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule chunk
+    (qword | dqword | btword | word)
+  end
+
+  rule qword
+    # Order matters
+    sq ("\\'" | (!sq .))* sq
+  end
+end
+
+grammar EachSQL::Parser::PostgreSQL<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  # TODO: code dupe
+
+  rule root
+    (execution_block | empty | delimiter)* leftover?
+  end
+
+  rule execution_block
+    (begin_end_block | sql_statement)
+  end
+
+  rule begin_end_block
+    begin_block
+      (begin_end_block | sql_statement | empty)+ 
+    end_block
+    delimiters
+  end
+
+  rule end_block
+    # end something
+    /\bend\b/i (empty+ chunk*)?
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !(begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule chunk
+    (dollar_tag | double_dollar | qword | dqword | btword | word)
+  end
+
+  rule word
+     !(space | delimiter | '/*' | "--" | /\$[^$\s]+\$/ | '$$' | sq | dq | bt) .
+  end
+
+  rule dollar_tag
+    /(\$[^$\s]+\$).*?\1/m
+  end
+
+  rule double_dollar
+    '$$' (!'$$' .)* '$$'
+  end
+end
+
+grammar EachSQL::Parser::Oracle<%= suffix %>
+  include EachSQL::Parser::Default<%= suffix %>
+
+  rule root
+    (execution_block | empty | '/' | delimiter)* leftover?
+  end
+
+  rule execution_block
+    (
+      creation | 
+      declare_begin_end_block |
+      begin_end_block |
+      sql_statement
+    )
+  end
+
+  rule declare_begin_end_block
+    declare 
+      sql_statement+
+    begin_end_block
+  end
+
+  rule sql_statement
+    (empty | delimiter)*
+
+    !('/' | create | declare | begin_block | end_block) chunk
+
+    (chunk | empty)* 
+    delimiters
+  end
+
+  rule creation
+    create
+    sql_statement+
+    (
+      ( end_block delimiters ) | begin_end_block
+    )
+  end
+
+  rule create
+    /\bcreate\b/i (empty+ /or/i empty+ /replace/i)? empty+
+    /\b(procedure|function|trigger|package)\b/i
+  end
+end
+

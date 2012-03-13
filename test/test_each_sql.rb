@@ -2,253 +2,13 @@
 
 $LOAD_PATH << File.dirname(__FILE__)
 require 'helper'
+require 'yaml'
 
 class TestEachSql < Test::Unit::TestCase
-	def setup
-	@sql = [
-"-------------- begin-end block;
-declare
-	/* end; */
-	/* begin */
-	null;
-	null;
-	null;
-begin
-	/* end */
-	null;
-end",
-"-------------- begin-end block;
-begin
-	-- begin-end block;
-	-- line comment
-	-- line comment
-	-- line comment
-	begin
-		null;
-		begin
-			null;
-		end;
-	end;
-	-- end
-	/* end */
-end",
-"select * from a",
-"select
-	*
-from
-	b",
-"select 'abc', 'abc;', 'abc''', 'abc/*', 'abc--' from c",
-
-"select
-	/*+ help */ *
-from
-	d",
-"select * from /* block comment ; */ e",
-"select * 
-from -- line comment ; /* ;; */
-f",
-"-------------- begin-end block;
-declare
-	/* end; */
-	/* begin */
-	null;
-	null;
-	null;
-begin
-	-- begin-end block;
-	-- line comment
-	-- line comment
-	-- line comment
-	begin
-		null;
-		begin
-			null;
-		end;
-	end;
-	-- end
-	/* end */
-end",
-"select * from dual",
-"select b `begin` from dual",
-'select b "begin" from dual',
-'select 
-	begin , begin.* from begin'
-]
-
-	@oracle = [
-'select * from dual',
-'create /* procedure */ sequence a',
-"create package something as
-	procedure log;
-	procedure log;
-	procedure log;
-end something;",
-"Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
-    str number(8, 2) := 1 / 4;
-begin
-	1 / 2;
-	begin
-		1 / 4;
-		null;
-	end;
-exception
-    when others then
-        raise;
-end;",
-"-- declaration
-declare
-	a int;
-begin
-	1 / 2;
-	begin
-		1 / 4;
-		null;
-	end;
-exception
-    when others then
-        raise;
-end;",
-"begin
-	null;
-end;",
-"begin
-        null;
-    end;",
-"select * from dual",
-"select begin, end, create, procedure, end, from dual",
-"select * from dual",
-"-- TMP_DB_TOOLS_CONV
-        begin
-            execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
-        exception
-            when others then
-                null;
-        end;"
-	]
-		
-	@oracle_script = "
-select * from dual;
-;;;;;;;
-;;;
-;;
-
-create /* procedure */ sequence a;
-create package something as
-	procedure log;
-	procedure log;
-	procedure log;
-end something;
-/
-
-Create or replace Procedure tmmp(p1 number default 'begin', p2 number) as
-    str number(8, 2) := 1 / 4;
-begin
-	1 / 2;
-	begin
-		1 / 4;
-		null;
-	end;
-exception
-    when others then
-        raise;
-end;
-/
--- declaration
-declare
-	a int;
-begin
-	1 / 2;
-	begin
-		1 / 4;
-		null;
-	end;
-exception
-    when others then
-        raise;
-end;
-/
-begin
-	null;
-end;
-/
-    begin
-        null;
-    end;
-    /
-select * from dual;
-;
-;
-;
-
-
-;;;;;;
-;
-
-select begin, end, create, procedure, end, from dual;
-select * from dual;
-
-        -- TMP_DB_TOOLS_CONV
-        begin
-            execute immediate 'DROP TABLE TMP_DB_TOOLS_CONV CASCADE CONSTRAINTS';
-        exception
-            when others then
-                null;
-        end;
-        /
-"
-
-	@mysql = [
-"drop procedure if exists proc",
-"create procedure proc(p1 int, p2 int)
-begin
-    null;
-	begin
-		null;
-	end;
-end",
-"drop procedure if exists proc2",
-"create procedure proc(p1 int, p2 int)
-begin
-    null;
-
-end",
-"select * from dual",
-"select b `begin` from dual",
-'select b "begin" from dual',
-'select 
-	begin , begin.* from begin'
-	]
-	@mysql_script = "
-delimiter //
-drop procedure if exists proc //
-create procedure proc(p1 int, p2 int)
-begin
-    null;
-	begin
-		null;
-	end;
-end //
-delimiter ;
-
-delimiter $$
-drop procedure if exists proc2 $$
-create procedure proc(p1 int, p2 int)
-begin
-    null;
-
-end $$
-delimiter ;
-
-select * from dual;;;;;
-;;;select b `begin` from dual;
-select b \"begin\" from dual;
-select 
-	begin , begin.* from begin"
-	end
-
-	def test_sql
+  def _test_empty
 		[nil, "", " \n" * 10].each do |input|
 			EachSQL(input).each do |sql|
+        p sql
 				assert false, 'Should not enumerate'
 			end
 
@@ -258,42 +18,80 @@ select
 			end
 			assert true, 'No error expected'
 		end
+  end
 
-		script = @sql.map { |e| e.strip + ';;;;' }.join $/
-		EachSQL(script).each_with_index do |sql,idx|
-			puts sql
-			puts '-' * 40
-			assert_equal @sql[idx], sql
-		end
+  def _test_parser_cache
+    [:default, :mysql, :oracle, :postgres].each do |typ|
+      %w[';', '$$', '//'].each do |delim|
+        arr = 
+          10.times.map {
+            EachSQL::Parser.parser_for typ, delim
+          }
+        p arr
+        assert_equal 10, arr.length
+        assert_equal 1, arr.uniq.length
+      end
+    end
 
-		cnt = 0
-		EachSQL(script) do |sql|
-			cnt += 1
-		end
-		assert_equal cnt, EachSQL(script).to_a.length
-		assert_equal EachSQL(script).to_a, EachSQL(script).map { |e| e }
+  end
+
+	def test_sql
+    common = YAML.load(
+                     File.read(
+                       File.join(
+                         File.dirname(__FILE__), "yml/common.yml")))
+    [:default, :mysql, :oracle, :postgres].each do |typ|
+      data = YAML.load(
+               File.read(
+                 File.join(
+                   File.dirname(__FILE__), "yml/#{typ}.yml")))
+
+      script = nil
+      [common, data].each do |d|
+        script = d['all']
+        EachSQL(script, typ).each_with_index do |sql, idx|
+          expect = d['each'][idx].chomp
+          puts sql
+          puts '-' * 40
+          if typ == :oracle
+            assert expect == sql || sql == expect + ';',
+              [expect, 'x' * 80, sql].join($/)
+          else
+            assert_equal expect, sql
+          end
+        end
+      end
+
+      cnt = 0
+      EachSQL(script, typ) do |sql|
+        cnt += 1
+      end
+      assert_equal data['each'].length, cnt
+      assert_equal cnt, EachSQL(script, typ).to_a.length
+      assert_equal EachSQL(script, typ).to_a, EachSQL(script, typ).map { |e| e }
+    end
 	end
 	
-	def test_oracle
-		EachSQL(@oracle_script, :oracle).each_with_index do |sql,idx|
-			puts sql
-			puts '-' * 40
-			assert_equal @oracle[idx], sql
-		end
-	end
+	# def test_oracle
+	# 	EachSQL(@oracle_script, :oracle).each_with_index do |sql,idx|
+	# 		puts sql
+	# 		puts '-' * 40
+	# 		assert_equal @oracle[idx], sql
+	# 	end
+	# end
 
-	def test_mysql
-		EachSQL(@mysql_script, :mysql).each_with_index do |sql,idx|
-			puts sql
-			puts '-' * 40
-			assert_equal @mysql[idx], sql
-		end
-	end
+	# def test_mysql
+	# 	EachSQL(@mysql_script, :mysql).each_with_index do |sql,idx|
+	# 		puts sql
+	# 		puts '-' * 40
+	# 		assert_equal @mysql[idx], sql
+	# 	end
+	# end
 
-	def _test_postgres
-		EachSQL(File.read(File.dirname(__FILE__) + '/postgres.sql'), :postgres).each_with_index do |sql,idx|
-			puts sql
-			puts '-' * 40
-		end
-	end
+	# def _test_postgres
+	# 	EachSQL(File.read(File.dirname(__FILE__) + '/postgres.sql'), :postgres).each_with_index do |sql,idx|
+	# 		puts sql
+	# 		puts '-' * 40
+	# 	end
+	# end
 end

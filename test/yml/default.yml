@@ -1,0 +1,21 @@
+---
+all: |
+  select * from dual;
+  DECLARE UDF1CUR CURSOR FOR SELECT UDF2();
+  select 
+    begin , begin.* from begin;
+  select b `begin` from dual;
+  commit;
+  rollback;
+  select b "begin" from dual
+
+each:
+- select * from dual
+- DECLARE UDF1CUR CURSOR FOR SELECT UDF2()
+- |
+  select 
+    begin , begin.* from begin
+- select b `begin` from dual
+- commit
+- rollback
+- select b "begin" from dual

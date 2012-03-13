@@ -1,6 +1,6 @@
 # each_sql
 
-Enumerate each SQL statement in the given SQL script.
+Enumerate executable blocks in the given SQL script.
 
 ## Installation
 ```
@@ -35,11 +35,16 @@ end
 EachSQL(plsql_script, :oracle).each do |sql|
   # ...
 end
+
+# For PostgreSQL scripts
+EachSQL(plsql_script, :postgres).each do |sql|
+  # ...
+end
 ```
 
 ## TODO
 - More/better tests.
-- pgplsql support.
+- Performance.
 
 ## Warning
 Stored procedure handling is at best incomplete. Use it at your own risk.
