@@ -6,7 +6,7 @@
    I couldn't be more wrong. Codes for handling a few exceptional cases
    soon piled up and became unmaintainable.
    The new version now employs Citrus parser for processing SQL scripts.
-   The output is not backward-compatible, for instantce, comments before and after
+   The output is not backward-compatible, for instance, comments before and after
    each execution block are trimmed out.
 * Supports PostgreSQL (experimental)
 * `delimiter` command works for all types

@@ -1,13 +1,16 @@
-# each_sql
+each_sql
+========
 
 Enumerate executable blocks in the given SQL script.
 
-## Installation
+Installation
+------------
 ```
 gem install 'each_sql'
 ```
 
-## Example
+Example
+-------
 ### Basic
 ```ruby
 require 'each_sql'
@@ -42,14 +45,17 @@ EachSQL(plpgsql_script, :postgres).each do |sql|
 end
 ```
 
-## TODO
-- More/better tests.
-- Performance.
+TODO
+----
+- More tests.
+- Support for other RDBMSs
 
-## Warning
+Warning
+-------
 Stored procedure handling is at best incomplete. Use it at your own risk.
 
-## Contributing to each_sql
+Contributing to each_sql
+------------------------
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
@@ -59,8 +65,9 @@ Stored procedure handling is at best incomplete. Use it at your own risk.
 * Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
 * Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
-## Copyright
+Copyright
+---------
 
-Copyright (c) 2011 Junegunn Choi. See LICENSE.txt for
+Copyright (c) 2012 Junegunn Choi. See LICENSE.txt for
 further details.
 
