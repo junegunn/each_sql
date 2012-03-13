@@ -37,7 +37,7 @@ EachSQL(plsql_script, :oracle).each do |sql|
 end
 
 # For PostgreSQL scripts
-EachSQL(plsql_script, :postgres).each do |sql|
+EachSQL(plpgsql_script, :postgres).each do |sql|
   # ...
 end
 ```
