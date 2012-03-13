@@ -103,7 +103,7 @@ grammar EachSQL::Parser::MySQL<%= suffix %>
   include EachSQL::Parser::Default<%= suffix %>
 
   rule root
-    (execution_block | empty | delimiter)* leftover
+    (execution_block | empty | delimiter)* leftover?
   end
 
   rule execution_block
@@ -147,7 +147,7 @@ grammar EachSQL::Parser::PostgreSQL<%= suffix %>
   # TODO: code dupe
 
   rule root
-    (execution_block | empty | delimiter)* leftover
+    (execution_block | empty | delimiter)* leftover?
   end
 
   rule execution_block
@@ -196,7 +196,7 @@ grammar EachSQL::Parser::Oracle<%= suffix %>
   include EachSQL::Parser::Default<%= suffix %>
 
   rule root
-    (execution_block | empty | '/' | delimiter)* leftover
+    (execution_block | empty | '/' | delimiter)* leftover?
   end
 
   rule execution_block

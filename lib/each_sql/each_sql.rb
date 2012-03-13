@@ -21,6 +21,11 @@ class EachSQL
     self
   end
 
+  # @return[String] Current delimiter.
+  def delimiter
+    @delim
+  end
+
   # Appends the given String to the buffer.
   # @param[String] input String to append
   def << input
@@ -72,14 +77,21 @@ class EachSQL
       sql = sql.sub(/\A[\s\/]+/, '').sub(/[\s\/]+\Z/, '')
     end
 
-    sql = sql.gsub(
-            /
-             (?:
-               (?:\A(?:#{Regexp.escape @delim}|[\s]+)+)
-               |
-               (?:(?:#{Regexp.escape @delim}|[\s]+)+\Z)
-             )+
-            /x, '')
+    # FIXME: Infinite loop?
+    # sql = sql.gsub(
+    #         /
+    #          (?:
+    #            (?:\A(?:#{Regexp.escape @delim}|[\s]+)+)
+    #            |
+    #            (?:(?:#{Regexp.escape @delim}|[\s]+)+\Z)
+    #          )+
+    #         /x, '')
+    prev_sql = nil
+    delim = Regexp.escape @delim
+    while prev_sql != sql
+      prev_sql = sql
+      sql = sql.strip.sub(/\A(?:#{delim})+/, '').sub(/(?:#{delim})+\Z/, '')
+    end
 
     # Postprocess
     case @type

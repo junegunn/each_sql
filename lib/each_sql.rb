@@ -14,13 +14,9 @@ def EachSQL input, type = :default
   esql   = EachSQL.new(type)
   ret    = []
   result = {}
-  input.to_s.each_line do |line|
-    if (md = line.match(/^\s*delimiter\s+(\S+)/i)) && esql.empty?
-      esql.delimiter = md[1]
-      next
-    end
 
-    esql << line
+  process = lambda {
+    return if esql.empty?
     result = esql.shift
     sqls   = result[:sqls]
     sqls.each do |sql|
@@ -30,6 +26,27 @@ def EachSQL input, type = :default
         ret << sql
       end
     end
+  }
+
+  input.to_s.each_line do |line|
+    case line
+    when /^\s*delimiter\s+(\S+)/i
+      process.call
+      if esql.empty?
+        esql.delimiter = $1
+      else
+        esql << line
+      end
+    when /#{Regexp.escape esql.delimiter}/
+      esql << line
+      process.call
+    else
+      esql << line
+    end
+  end
+
+  if !esql.empty?
+    process.call
   end
 
   if sql = result[:leftover]
