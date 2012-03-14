@@ -23,7 +23,7 @@ grammar EachSQL::Parser::Default<%= suffix %>
   end
 
   rule begin_block
-    /\bbegin\b/i
+    /\bbegin\b/i !(empty+ /\btransaction\b/i)
   end
 
   rule end_block

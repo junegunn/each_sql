@@ -293,7 +293,9 @@ all: |
   select 
     begin , begin.* from begin;
   select b `begin` from dual;
+  begin transaction;
   commit;
+  start transaction;
   rollback;
   select b "begin" from dual
 
@@ -596,6 +598,8 @@ each:
   select 
     begin , begin.* from begin
 - select b `begin` from dual
+- begin transaction
 - commit
+- start transaction
 - rollback
 - select b "begin" from dual
