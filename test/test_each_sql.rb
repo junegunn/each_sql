@@ -5,10 +5,30 @@ require 'helper'
 require 'yaml'
 
 class TestEachSql < Test::Unit::TestCase
-  def _test_empty
+  def test_each_sql
+    esql = EachSQL.new(:default)
+    esql << "select"
+    result = esql.shift
+    assert_equal 0, result[:sqls].length
+    assert_equal 'select', result[:leftover]
+
+    esql << " * from table1; select * from table2;"
+    result = esql.shift
+    assert_equal ['select * from table1', 'select * from table2'], result[:sqls]
+    assert_equal nil, result[:leftover]
+
+    esql << "select * from table3;"
+    assert_equal esql, esql.clear
+    result = esql.shift
+    assert_equal 0, result[:sqls].length
+    assert_equal nil, result[:leftover]
+  end
+
+  # Acceptance tests
+  # ================
+  def test_empty
 		[nil, "", " \n" * 10].each do |input|
 			EachSQL(input).each do |sql|
-        p sql
 				assert false, 'Should not enumerate'
 			end
 
@@ -20,7 +40,7 @@ class TestEachSql < Test::Unit::TestCase
 		end
   end
 
-  def _test_parser_cache
+  def test_parser_cache
     [:default, :mysql, :oracle, :postgres].each do |typ|
       %w[';', '$$', '//'].each do |delim|
         arr = 
@@ -71,27 +91,4 @@ class TestEachSql < Test::Unit::TestCase
       assert_equal EachSQL(script, typ).to_a, EachSQL(script, typ).map { |e| e }
     end
 	end
-	
-	# def test_oracle
-	# 	EachSQL(@oracle_script, :oracle).each_with_index do |sql,idx|
-	# 		puts sql
-	# 		puts '-' * 40
-	# 		assert_equal @oracle[idx], sql
-	# 	end
-	# end
-
-	# def test_mysql
-	# 	EachSQL(@mysql_script, :mysql).each_with_index do |sql,idx|
-	# 		puts sql
-	# 		puts '-' * 40
-	# 		assert_equal @mysql[idx], sql
-	# 	end
-	# end
-
-	# def _test_postgres
-	# 	EachSQL(File.read(File.dirname(__FILE__) + '/postgres.sql'), :postgres).each_with_index do |sql,idx|
-	# 		puts sql
-	# 		puts '-' * 40
-	# 	end
-	# end
 end

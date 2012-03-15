@@ -5,12 +5,13 @@ class EachSQL
   include Enumerable
 
   # @param[Symbol] type RDBMS type: :default|:mysql|:oracle|:postgres
-  def initialize type
+  # @param[String] delimiter Script delimiter.
+  def initialize type, delimiter = ';'
     @type   = type
     @data   = ''
     @sqls   = []
 
-    self.delimiter = ';'
+    self.delimiter = delimiter
   end
 
   # @param[String] delim SQL delimiter
@@ -32,6 +33,13 @@ class EachSQL
     if input
       @data << input.sub(/\A#{[65279].pack('U*')}/, '') # BOM (FIXME)
     end
+    self
+  end
+
+  # Clears the buffer
+  # @return [EachSQL]
+  def clear
+    @data = ''
     self
   end
 

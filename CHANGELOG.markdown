@@ -1,3 +1,7 @@
+### 0.3.1 / 2012/03/15
+* Bug fix: `begin transaction`
+* `EachSQL#clear`
+
 ### 0.3.0 / 2012/03/10
 * Internal implementation revised.
  * At first, I thought this would be trivial, 
