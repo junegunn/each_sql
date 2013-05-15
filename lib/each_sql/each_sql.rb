@@ -68,6 +68,8 @@ class EachSQL
   # @yield [String]
   # @return [NilClass]
   def each
+    return enum_for(:each) unless block_given?
+
     result = shift
     sqls   = (result[:sqls] + result[:leftover]).
               map { |sql| strip_sql(sql) }.

@@ -9,10 +9,11 @@ require 'each_sql/parser'
 # @param[String] input Input script.
 # @param[Symbol] The type of the input SQL script. :default, :mysql, and :oracle (or :plsql)
 # @yield[String] Executable SQL statement or block.
-# @return[Array] Array of executable SQL statements and blocks.
+# @return[Enumerator] Enumerator of executable SQL statements and blocks.
 def EachSQL input, type = :default
+  return enum_for(:EachSQL, input, type) unless block_given?
+
   esql   = EachSQL.new(type)
-  ret    = []
   result = {}
 
   process = lambda {
@@ -20,11 +21,7 @@ def EachSQL input, type = :default
     result = esql.shift
     sqls   = result[:sqls]
     sqls.each do |sql|
-      if block_given?
-        yield sql
-      else
-        ret << sql
-      end
+      yield sql
     end
   }
 
@@ -50,13 +47,7 @@ def EachSQL input, type = :default
   end
 
   if sql = result[:leftover]
-    if block_given?
-      yield sql
-    else
-      ret << sql
-    end
+    yield sql
   end
-
-  ret
 end
 

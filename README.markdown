@@ -1,7 +1,7 @@
 each_sql
 ========
 
-Enumerate executable blocks in the given SQL script.
+Enumerate executable blocks in the given SQL script. (experimental)
 
 Installation
 ------------

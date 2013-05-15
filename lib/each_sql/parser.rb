@@ -19,7 +19,7 @@ module Parser
 
     Citrus.eval erb.result(binding)
 
-    @@parser[[type, delimiter]] = 
+    @@parser[[type, delimiter]] =
       case type
       when :default
         eval "EachSQL::Parser::Default#{suffix}"

@@ -1,10 +1,13 @@
+### 0.4.0 / 2013/05/15
+* Returns an Enumerator instead of an Array when block is not given
+
 ### 0.3.1 / 2012/03/15
 * Bug fix: `begin transaction`
 * `EachSQL#clear`
 
 ### 0.3.0 / 2012/03/10
 * Internal implementation revised.
- * At first, I thought this would be trivial, 
+ * At first, I thought this would be trivial,
    that I didn't need a real parser for just breaking SQL scripts
    into individual executable units.
    I couldn't be more wrong. Codes for handling a few exceptional cases

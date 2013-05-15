@@ -43,7 +43,7 @@ class TestEachSql < Test::Unit::TestCase
   def test_parser_cache
     [:default, :mysql, :oracle, :postgres].each do |typ|
       %w[';', '$$', '//'].each do |delim|
-        arr = 
+        arr =
           10.times.map {
             EachSQL::Parser.parser_for typ, delim
           }
@@ -88,7 +88,8 @@ class TestEachSql < Test::Unit::TestCase
       end
       assert_equal data['each'].length, cnt
       assert_equal cnt, EachSQL(script, typ).to_a.length
-      assert_equal EachSQL(script, typ).to_a, EachSQL(script, typ).map { |e| e }
+      assert_equal EachSQL(script, typ).to_a,
+        EachSQL(script, typ).each.each.take_while { true }.map { |e| e }
     end
 	end
 end
