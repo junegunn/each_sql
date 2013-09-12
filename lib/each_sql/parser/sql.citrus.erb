@@ -13,7 +13,7 @@ grammar EachSQL::Parser::Default<%= suffix %>
 
   rule begin_end_block
     begin_block
-      (begin_end_block | sql_statement | empty)+ 
+      (begin_end_block | sql_statement | empty)+
     end_block
     delimiters
   end
@@ -36,12 +36,12 @@ grammar EachSQL::Parser::Default<%= suffix %>
 
     !(begin_block | end_block) chunk
 
-    (chunk | empty)* 
+    (chunk | empty)*
     delimiters
   end
 
   rule delimiters
-    empty* delimiter 
+    empty* delimiter
     (empty | delimiter)*
   end
 
@@ -70,7 +70,11 @@ grammar EachSQL::Parser::Default<%= suffix %>
   end
 
   rule c_comment
-    '/*' (!'*/' .)* '*/'
+    '/*' (hint | !'*/' .)* '*/'
+  end
+
+  rule hint
+    '/*+' (!'*/' .)* '*/'
   end
 
   rule l_comment
@@ -112,7 +116,7 @@ grammar EachSQL::Parser::MySQL<%= suffix %>
 
   rule begin_end_block
     begin_block
-      (begin_end_block | sql_statement | empty)+ 
+      (begin_end_block | sql_statement | empty)+
     end_block
     delimiters
   end
@@ -127,7 +131,7 @@ grammar EachSQL::Parser::MySQL<%= suffix %>
 
     !(begin_block | end_block) chunk
 
-    (chunk | empty)* 
+    (chunk | empty)*
     delimiters
   end
 
@@ -156,7 +160,7 @@ grammar EachSQL::Parser::PostgreSQL<%= suffix %>
 
   rule begin_end_block
     begin_block
-      (begin_end_block | sql_statement | empty)+ 
+      (begin_end_block | sql_statement | empty)+
     end_block
     delimiters
   end
@@ -171,7 +175,7 @@ grammar EachSQL::Parser::PostgreSQL<%= suffix %>
 
     !(begin_block | end_block) chunk
 
-    (chunk | empty)* 
+    (chunk | empty)*
     delimiters
   end
 
@@ -201,7 +205,7 @@ grammar EachSQL::Parser::Oracle<%= suffix %>
 
   rule execution_block
     (
-      creation | 
+      creation |
       declare_begin_end_block |
       begin_end_block |
       sql_statement
@@ -209,7 +213,7 @@ grammar EachSQL::Parser::Oracle<%= suffix %>
   end
 
   rule declare_begin_end_block
-    declare 
+    declare
       sql_statement+
     begin_end_block
   end
@@ -219,7 +223,7 @@ grammar EachSQL::Parser::Oracle<%= suffix %>
 
     !('/' | create | declare | begin_block | end_block) chunk
 
-    (chunk | empty)* 
+    (chunk | empty)*
     delimiters
   end
 

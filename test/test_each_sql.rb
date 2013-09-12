@@ -27,17 +27,17 @@ class TestEachSql < Test::Unit::TestCase
   # Acceptance tests
   # ================
   def test_empty
-		[nil, "", " \n" * 10].each do |input|
-			EachSQL(input).each do |sql|
-				assert false, 'Should not enumerate'
-			end
+    [nil, "", " \n" * 10].each do |input|
+      EachSQL(input).each do |sql|
+        assert false, 'Should not enumerate'
+      end
 
       # Directly pass block
-			EachSQL(input) do |sql|
-				assert false, 'Should not enumerate'
-			end
-			assert true, 'No error expected'
-		end
+      EachSQL(input) do |sql|
+        assert false, 'Should not enumerate'
+      end
+      assert true, 'No error expected'
+    end
   end
 
   def test_parser_cache
@@ -55,16 +55,10 @@ class TestEachSql < Test::Unit::TestCase
 
   end
 
-	def test_sql
-    common = YAML.load(
-                     File.read(
-                       File.join(
-                         File.dirname(__FILE__), "yml/common.yml")))
+  def test_sql
+    common = YAML.load_file(File.expand_path("../yml/common.yml", __FILE__))
     [:default, :mysql, :oracle, :postgres].each do |typ|
-      data = YAML.load(
-               File.read(
-                 File.join(
-                   File.dirname(__FILE__), "yml/#{typ}.yml")))
+      data = YAML.load_file(File.expand_path("../yml/#{typ}.yml", __FILE__))
 
       script = nil
       [common, data].each do |d|
@@ -91,5 +85,5 @@ class TestEachSql < Test::Unit::TestCase
       assert_equal EachSQL(script, typ).to_a,
         EachSQL(script, typ).each.each.take_while { true }.map { |e| e }
     end
-	end
+  end
 end

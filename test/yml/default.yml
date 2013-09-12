@@ -2,9 +2,12 @@
 all: |
   select * from dual;
   DECLARE UDF1CUR CURSOR FOR SELECT UDF2();
-  select 
+  select
     begin , begin.* from begin;
   select b `begin` from dual;
+  /*
+    select /*+ hint */ 1 from dual;
+  */
   commit;
   rollback;
   select b "begin" from dual
@@ -13,9 +16,13 @@ each:
 - select * from dual
 - DECLARE UDF1CUR CURSOR FOR SELECT UDF2()
 - |
-  select 
+  select
     begin , begin.* from begin
 - select b `begin` from dual
-- commit
+- |
+  /*
+    select /*+ hint */ 1 from dual;
+  */
+  commit
 - rollback
 - select b "begin" from dual
